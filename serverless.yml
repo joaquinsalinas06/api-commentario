@@ -11,10 +11,14 @@ provider:
     role: arn:aws:iam::164273947020:role/LabRole
   environment:
     TABLE_NAME: ${sls:stage}-t_comentarios
+    BUCKET_NAME: ${self:service}-${sls:stage}-bucket-ingesta
 
 functions:
   crear:
     handler: comentario.lambda_handler
+    environment:
+      TABLE_NAME: ${self:provider.environment.TABLE_NAME}
+      BUCKET_NAME: ${self:provider.environment.BUCKET_NAME}
     events:
       - http:
           path: /comentario/crear
@@ -38,5 +42,9 @@ resources:
             KeyType: HASH
           - AttributeName: uuid
             KeyType: RANGE
-        # Set the capacity to auto-scale
         BillingMode: PAY_PER_REQUEST
+
+    BucketIngesta:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.BUCKET_NAME}
